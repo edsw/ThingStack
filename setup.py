@@ -1,9 +1,7 @@
 import setuptools
 
-
 with open("README.md") as fp:
     long_description = fp.read()
-
 
 setuptools.setup(
     name="poolcontroller",
@@ -15,11 +13,12 @@ setuptools.setup(
 
     author="author",
 
-    package_dir={"": "poolcontroller"},
-    packages=setuptools.find_packages(where="poolcontroller"),
+    #package_dir={"": "poolcontroller"},
+    #packages=setuptools.find_packages(where="poolcontroller"),
 
     install_requires=[
         "aws-cdk.core",
+        "aws-cdk.aws-iot"
     ],
 
     python_requires=">=3.6",

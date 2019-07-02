@@ -17,8 +17,10 @@ setuptools.setup(
     #packages=setuptools.find_packages(where="poolcontroller"),
 
     install_requires=[
+        "cryptography",
         "aws-cdk.core",
-        "aws-cdk.aws-iot"
+        "aws-cdk.aws-iot",
+        "aws-cdk.aws-secretsmanager"
     ],
 
     python_requires=">=3.6",

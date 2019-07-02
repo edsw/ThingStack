@@ -26,3 +26,7 @@ To delete, must first set Certificate Status -> INACTIVE
 
 Resources
 https://cryptography.io/en/latest/x509/tutorial/#creating-a-certificate-signing-request-csr
+https://docs.aws.amazon.com/cdk/api/latest/python/modules.html
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_IoT.html
+https://docs.aws.amazon.com/iot/latest/developerguide/managing-device-certs.html
+https://github.com/aws-samples/aws-cdk-examples/tree/master/python

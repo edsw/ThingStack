@@ -18,6 +18,7 @@ setuptools.setup(
 
     install_requires=[
         "cryptography",
+        "boto3",
         "aws-cdk.core",
         "aws-cdk.aws-iot",
         "aws-cdk.aws-secretsmanager"

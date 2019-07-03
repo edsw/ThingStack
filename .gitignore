@@ -1,0 +1,6 @@
+.env/
+.vscode/
+*.pem
+cdk.out/
+*.egg-info/
+*.pyc

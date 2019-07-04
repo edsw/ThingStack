@@ -21,11 +21,15 @@ $ cdk deploy --context thing_name=pool1
 
 ## Post
 ```
+$ curl -s https://www.amazontrust.com/repository/AmazonRootCA1.pem
+
 $ IOT_CERT=$(aws cloudformation describe-stacks --stack-name poolcontroller1 --query "Stacks[0].Outputs[?OutputKey=='CertificateId'].OutputValue" --output text)
 $ aws iot describe-certificate --certificate-id $IOT_CERT --query "certificateDescription.certificatePem" --output text
 
 $ KEY_SECRET=$(aws cloudformation describe-stacks --stack-name poolcontroller1 --query "Stacks[0].Outputs[?OutputKey=='SecretId'].OutputValue" --output text)
 $ aws secretsmanager get-secret-value --secret-id $KEY_SECRET --query "SecretString" --output text | jq -r ".privateKey"
+
+$ aws iot describe-endpoint --output text
 ```
 
 ## Resources
@@ -37,3 +41,4 @@ $ aws secretsmanager get-secret-value --secret-id $KEY_SECRET --query "SecretStr
 
 ## Notes
 1. To delete stack, you must first set the certificate status to INACTIVE and `cdk deploy` to update the stack.
+2. Append to certificate printing commands for format required by Arduino: `| awk '{print "\"" $0 "\\n\" \\"}'`

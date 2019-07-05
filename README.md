@@ -2,7 +2,7 @@
 
 ## About
 
-This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) components for provisioning of a device through [AWS CloudFormation](https://aws.amazon.com/cloudformation/) and the [AWS CDK](https://github.com/awslabs/aws-cdk) (Python). The project automatically generates a device certificate and uses [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) for storing for the device's private key. It can be reused to deploy and manage the lifecycle of multiple devices.
+This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) components for the provisioning of a Thing (Arduino, in my case) through [AWS CloudFormation](https://aws.amazon.com/cloudformation/) and the [AWS CDK](https://github.com/awslabs/aws-cdk) (Python). The project automatically generates a device certificate and uses [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) for storing for the device's private key. It can be reused to deploy and manage the lifecycle of multiple devices.
 
 The inspiration for this project was twofold. First, I wanted to install an Arduino microcontroller by my pool in order to track its water temperature. For this I selected an [ESP32-based microcontroller](https://www.amazon.com/dp/B0718T232Z/ref=cm_sw_em_r_mt_dp_U_HlShDb8YN7AT7) and [DS18B20-based temperature sensor](https://www.amazon.com/dp/B01MY8U394/ref=cm_sw_em_r_mt_dp_U_kmShDbWT4C6YH) (_will link here to Arduino code soon_). Second, I wanted to experiment with AWS CDK's Python support.
 
@@ -16,7 +16,9 @@ $ npm install -g aws-cdk
 ```
 
 ## Setup
-Clone the project and install the project prerequisites...
+First, configure your AWS CLI with an Access Key that has the necessary permissions to deploy an AWS IoT stack in CloudFormation. (_Note: To be documented_)
+
+Then, clone this project and install the project prerequisites:
 ```
 $ cd /Directory/Of/Choice
 $ git clone <url>
@@ -24,7 +26,7 @@ $ pip3 install -r requirements.txt
 ```
 
 ## Deploy a Thing
-The file `cdk.json` includes the default variables used in provisioning the stack.
+The file `cdk.json` includes the default context variables used in provisioning the stack.
 ```
 $ cat cdk.json 
 {
@@ -48,22 +50,30 @@ $ cdk deploy --context thing_name=device1234
 ```
 
 ## After Deploying a Thing
-Once my Thing was provisioned, I needed to collect the necessary certificate details for my Arduino project. First, get the root certificate authority certificate under which all AWS IoT certificates are created.
+Once an AWS IoT Thing was provisioned, I needed to collect the necessary certificate details for my Arduino project. First, get the root certificate authority certificate under which all AWS IoT certificates are created.
 ```
 $ curl -s https://www.amazontrust.com/repository/AmazonRootCA1.pem
 ```
 
 Next, get the certificate provisioned by the AWS IoT service for your Thing.
 ```
-$ IOT_CERT=$(aws cloudformation describe-stacks --stack-name poolcontroller1 --query "Stacks[0].Outputs[?OutputKey=='CertificateId'].OutputValue" --output text)
-$ aws iot describe-certificate --certificate-id $IOT_CERT --query "certificateDescription.certificatePem" --output text
-```
+$ IOT_CERT=$(aws cloudformation describe-stacks --stack-name poolcontroller1 \
+    --query "Stacks[0].Outputs[?OutputKey=='CertificateId'].OutputValue" --output text)
 
-Finally, retrieve the private key for your certificate from AWS Secrets Manager.
+$ aws iot describe-certificate --certificate-id $IOT_CERT
+    --query "certificateDescription.certificatePem" --output text
 ```
-$ KEY_SECRET=$(aws cloudformation describe-stacks --stack-name poolcontroller1 --query "Stacks[0].Outputs[?OutputKey=='SecretId'].OutputValue" --output text)
-$ aws secretsmanager get-secret-value --secret-id $KEY_SECRET --query "SecretString" --output text | jq -r ".privateKey"
+_(Note: Replace `poolcontroller1` with the name of your Thing)_
+
+Then, retrieve the private key for your certificate from AWS Secrets Manager.
 ```
+$ KEY_SECRET=$(aws cloudformation describe-stacks --stack-name poolcontroller1 \
+    --query "Stacks[0].Outputs[?OutputKey=='SecretId'].OutputValue" --output text)
+
+$ aws secretsmanager get-secret-value --secret-id $KEY_SECRET \
+    --query "SecretString" --output text | jq -r ".privateKey"
+```
+_(Note: Again, replace `poolcontroller1` with the name of your Thing)_
 
 P.S. You may also need to know your AWS IoT MQQT endpoint used to publish messages.
 ```

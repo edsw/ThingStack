@@ -7,6 +7,12 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 
 def get_or_create(thing_name: str):
+    """This method first checks for the existence of an existing certificate in Secrets Manager, 
+    based on the Thing name provided. If this Thing name matches the name of an existing 
+    CloudFormation stack, then the stack is queried to identify if it specifies a SecretId. 
+    This is the ARN of an AWS Secrets Manager secret, which would contain the plain text output 
+    of a certificate signing request and a private key.
+    """
     cloudformation = boto3.client("cloudformation")
     secretsmanager = boto3.client("secretsmanager")
 

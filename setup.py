@@ -4,17 +4,15 @@ with open("README.md") as fp:
     long_description = fp.read()
 
 setuptools.setup(
-    name="poolcontroller",
-    version="0.0.1",
+    name="ThingStack",
+    version="0.1",
 
-    description="An empty CDK Python app",
+    description="Python 3 project to create an AWS CloudFormation stack via the AWS CDK that provisions a Thing on AWS IoT, along with automated certificate creation and storage with AWS Secrets Manager.",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    author="author",
-
-    #package_dir={"": "poolcontroller"},
-    #packages=setuptools.find_packages(where="poolcontroller"),
+    author="Ed Swindelles",
+    author_email="ed@swindelles.com",
 
     install_requires=[
         "cryptography",
@@ -24,24 +22,5 @@ setuptools.setup(
         "aws-cdk.aws-secretsmanager"
     ],
 
-    python_requires=">=3.6",
-
-    classifiers=[
-        "Development Status :: 4 - Beta",
-
-        "Intended Audience :: Developers",
-
-        "License :: OSI Approved :: Apache Software License",
-
-        "Programming Language :: JavaScript",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-
-        "Topic :: Software Development :: Code Generators",
-        "Topic :: Utilities",
-
-        "Typing :: Typed",
-    ],
+    python_requires=">=3.6"
 )

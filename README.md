@@ -6,17 +6,38 @@ This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) compon
 
 The inspiration for this project was twofold. First, I wanted to install an Arduino microcontroller by my pool in order to track its water temperature. For this I selected an [ESP32-based microcontroller](https://www.amazon.com/dp/B0718T232Z/ref=cm_sw_em_r_mt_dp_U_HlShDb8YN7AT7) and [DS18B20-based temperature sensor](https://www.amazon.com/dp/B01MY8U394/ref=cm_sw_em_r_mt_dp_U_kmShDbWT4C6YH) (_will link here to Arduino code soon_). Second, I wanted to experiment with AWS CDK's Python support.
 
-_Note: Only tested on macOS 10.14.5 and Python 3.7.2._
-
 ## Prerequisites
 Install the required packages...
 ```
 $ brew install awscli npm jq
 $ npm install -g aws-cdk
 ```
+_Note: Only tested on macOS 10.14.5, Python 3.7.2, and AWS CDK 0.37._
 
 ## Setup
-First, configure your AWS CLI with an Access Key that has the necessary permissions to deploy an AWS IoT stack in CloudFormation. (_Note: To be documented_)
+First, configure your AWS CLI with an Access Key that has the necessary permissions to deploy an AWS IoT stack in CloudFormation. My Access Key had the AWS managed policy `IAMReadOnlyAccess` attached, along with the below customer managed policy:
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole",
+                "secretsmanager:*",
+                "iot:*",
+                "cloudformation:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+_(Note: This policy provides more access than the minimally required permission set to deploy/destroy a stack.)_
+
+```
+aws configure
+```
 
 Then, clone this project and install the project prerequisites:
 ```
@@ -81,7 +102,10 @@ $ aws iot describe-endpoint --output text
 ```
 
 ## Notes
-1. To delete a stack, you must first set its certificate status to `INACTIVE` and re-run `cdk deploy` to update the stack. Then you can run `cdk destroy` against it.
+1. To delete a stack, you must first set its certificate status to `INACTIVE` and re-run `cdk deploy` to update the stack. Then you can run `cdk destroy` against it. In `thingstack.py`:
+```
+cert = aws_iot.CfnCertificate(..., status="INACTIVE")
+```
 2. If you're using the above certificates in an Arduino project you'll need to specify the certificate details in your `.ino` file in a specific format. Append the following `awk` command to the above certificate printing commands in order to help with this formatting: `| awk '{print "\"" $0 "\\n\" \\"}'`
 
 ## Resources
@@ -91,3 +115,6 @@ These sites were helpful in making this project successful:
 * https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_IoT.html
 * https://docs.aws.amazon.com/iot/latest/developerguide/managing-device-certs.html
 * https://github.com/aws-samples/aws-cdk-examples/tree/master/python
+
+## To Do
+1. Define the minimally required permission set to deploy/destroy stacks with this project.

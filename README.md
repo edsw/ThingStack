@@ -2,7 +2,7 @@
 
 ## About
 
-This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) components for the provisioning of a Thing (Arduino, in my case) through [AWS CloudFormation](https://aws.amazon.com/cloudformation/) and the [AWS CDK](https://github.com/awslabs/aws-cdk) (Python). The project automatically generates a device certificate and uses [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) for storing for the device's private key. It can be reused to deploy and manage the lifecycle of multiple devices.
+This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) components for the provisioning of a Thing (Arduino, in my case) through [AWS CloudFormation](https://aws.amazon.com/cloudformation/) and the [AWS CDK](https://aws.amazon.com/cdk/) (Python). The project automatically generates a device certificate and uses [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) for storing for the device's private key. It can be reused to deploy and manage the lifecycle of multiple devices.
 
 The inspiration for this project was twofold. First, I wanted to install an Arduino microcontroller by my pool in order to track its water temperature. For this I selected an [ESP32-based microcontroller](https://www.amazon.com/dp/B0718T232Z/ref=cm_sw_em_r_mt_dp_U_HlShDb8YN7AT7) and [DS18B20-based temperature sensor](https://www.amazon.com/dp/B01MY8U394/ref=cm_sw_em_r_mt_dp_U_kmShDbWT4C6YH) (_will link here to Arduino code soon_). Second, I wanted to experiment with AWS CDK's Python support.
 
@@ -12,7 +12,7 @@ Install the required packages...
 $ brew install awscli npm jq
 $ npm install -g aws-cdk
 ```
-_Note: Only tested on macOS 10.14.5, Python 3.7.2, and AWS CDK 0.37._
+_Note: Only tested on macOS 10.14.5, Python 3.7.2. Tested against AWS CDK 0.36.x and 1.0._
 
 ## Setup
 First, configure your AWS CLI with an Access Key that has the necessary permissions to deploy an AWS IoT stack in CloudFormation. My Access Key had the AWS managed policy `IAMReadOnlyAccess` attached, along with the below customer managed policy:

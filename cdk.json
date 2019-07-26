@@ -1,7 +1,0 @@
-{
-    "app": "python3 app.py",
-    "context": {
-        "thing_name": "poolcontroller1",
-        "policy_file": "policy.json"
-    }
-}

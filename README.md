@@ -98,7 +98,7 @@ Next, get the certificate provisioned by the AWS IoT service for your Thing.
 $ IOT_CERT=$(aws cloudformation describe-stacks --profile thingstack --stack-name poolcontroller1 \
     --query "Stacks[0].Outputs[?OutputKey=='CertificateId'].OutputValue" --output text)
 
-$ aws iot describe-certificate --profile thingstack --certificate-id $IOT_CERT
+$ aws iot describe-certificate --profile thingstack --certificate-id $IOT_CERT \
     --query "certificateDescription.certificatePem" --output text
 ```
 _(Note: Replace `poolcontroller1` with the name of your Thing)_

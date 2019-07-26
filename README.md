@@ -15,7 +15,7 @@ $ npm install -g aws-cdk
 _Note: Only tested on macOS 10.14.5, Python 3.7.2. Tested against AWS CDK 0.36.x and 1.0._
 
 ## Setup
-First, configure your AWS CLI with an Access Key that has the necessary permissions to deploy an AWS IoT stack in CloudFormation. My Access Key had the AWS managed policy `IAMReadOnlyAccess` attached, along with the below customer managed policy:
+First, configure your AWS CLI with with the necessary permissions to deploy an AWS IoT stack in CloudFormation. I have an IAM User configured with a policy allowing it only to assume a single role that has the AWS managed policy `IAMReadOnlyAccess` attached, along with the below customer managed policy:
 ```
 {
     "Version": "2012-10-17",
@@ -35,9 +35,22 @@ First, configure your AWS CLI with an Access Key that has the necessary permissi
 ```
 _(Note: This policy provides more access than the minimally required permission set to deploy/destroy a stack.)_
 
+I configure my CLI environment with the IAM user's Access Key and Secret Access Key.
 ```
 aws configure
 ```
+
+I then create a Named Profile to reference my Role's ARN.
+```
+ cat ~/.aws/config
+...
+[profile thingstack]
+role_arn = arn:aws:iam::123456789012:role/ThingStack-Role
+source_profile = default
+region = us-east-2
+...
+```
+_(Note: replace the role_arn with your specific Role ARN.)_
 
 Then, clone this project and install the project prerequisites:
 ```
@@ -46,59 +59,63 @@ $ git clone <url>
 $ pip3 install -r requirements.txt
 ```
 
-## Deploy a Thing
-The file `cdk.json` includes the default context variables used in provisioning the stack.
+Lastly, create/edit the file `cdk.json` to include the default context variables used in provisioning the stack. I have intentionally left this file out of my repository since it contains my AWS IAM Role ARN. This JSON file includes the name of your AWS IoT Thing (`thing_name`), the JSON policy that applies to your Thing (`policy_file`), the IAM Role ARN that is assumed by the code (`role_arn`), and the AWS region where you are deploying IoT resources (`region`).
+
 ```
 $ cat cdk.json 
 {
     "app": "python3 app.py",
     "context": {
         "thing_name": "poolcontroller1",
-        "policy_file": "policy.json"
+        "policy_file": "policy.json",
+        "role_arn": "arn:aws:iam::<account-id>:role/<role-name>",
+        "region": "us-east-2"
     }
 }
 ```
-To alter the name of your AWS IoT Thing, either edit the `thing_name` parameter above, or specify an alternative when deploying the stack on the command line. This also applies to the `policy_file` parameter, which is a JSON file that defines the policy that applies to your Thing.
 
-To use the values from `cdk.json`:
+## Deploy a Thing
+To use the values from `cdk.json` and the Named Policy `thingstack`:
 ```
-$ cdk deploy
+$ cdk deploy --profile thingstack
 ```
 
 To specify alternatives on the command line:
 ```
-$ cdk deploy --context thing_name=device1234
+$ cdk deploy --context thing_name=device1234 --profile thingstack
 ```
 
 ## After Deploying a Thing
-Once an AWS IoT Thing was provisioned, I needed to collect the necessary certificate details for my Arduino project. First, get the root certificate authority certificate under which all AWS IoT certificates are created.
+Once an AWS IoT Thing was provisioned, I needed to collect the necessary certificate details for my Arduino project. Note that in the below examples I specify the Named Profile I'm assuming via the `--profile thingstack` argument.
+
+First, get the root certificate authority certificate under which all AWS IoT certificates are created.
 ```
 $ curl -s https://www.amazontrust.com/repository/AmazonRootCA1.pem
 ```
 
 Next, get the certificate provisioned by the AWS IoT service for your Thing.
 ```
-$ IOT_CERT=$(aws cloudformation describe-stacks --stack-name poolcontroller1 \
+$ IOT_CERT=$(aws cloudformation describe-stacks --profile thingstack --stack-name poolcontroller1 \
     --query "Stacks[0].Outputs[?OutputKey=='CertificateId'].OutputValue" --output text)
 
-$ aws iot describe-certificate --certificate-id $IOT_CERT
+$ aws iot describe-certificate --profile thingstack --certificate-id $IOT_CERT
     --query "certificateDescription.certificatePem" --output text
 ```
 _(Note: Replace `poolcontroller1` with the name of your Thing)_
 
 Then, retrieve the private key for your certificate from AWS Secrets Manager.
 ```
-$ KEY_SECRET=$(aws cloudformation describe-stacks --stack-name poolcontroller1 \
+$ KEY_SECRET=$(aws cloudformation describe-stacks --profile thingstack --stack-name poolcontroller1 \
     --query "Stacks[0].Outputs[?OutputKey=='SecretId'].OutputValue" --output text)
 
-$ aws secretsmanager get-secret-value --secret-id $KEY_SECRET \
+$ aws secretsmanager get-secret-value --profile thingstack --secret-id $KEY_SECRET \
     --query "SecretString" --output text | jq -r ".privateKey"
 ```
 _(Note: Again, replace `poolcontroller1` with the name of your Thing)_
 
 P.S. You may also need to know your AWS IoT MQQT endpoint used to publish messages.
 ```
-$ aws iot describe-endpoint --output text
+$ aws iot describe-endpoint --profile thingstack --output text
 ```
 
 ## Notes

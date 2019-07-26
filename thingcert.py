@@ -6,15 +6,24 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 
-def get_or_create(thing_name: str):
+def get_or_create(thing_name: str, role_arn: str, region: str):
     """This method first checks for the existence of an existing certificate in Secrets Manager, 
     based on the Thing name provided. If this Thing name matches the name of an existing 
     CloudFormation stack, then the stack is queried to identify if it specifies a SecretId. 
     This is the ARN of an AWS Secrets Manager secret, which would contain the plain text output 
     of a certificate signing request and a private key.
     """
-    cloudformation = boto3.client("cloudformation")
-    secretsmanager = boto3.client("secretsmanager")
+    role = boto3.client("sts").assume_role(RoleArn=role_arn, RoleSessionName="ThingStack-{s}".format(s=thing_name))
+
+    session = boto3.Session(
+        aws_access_key_id=role["Credentials"]["AccessKeyId"],
+        aws_secret_access_key=role["Credentials"]["SecretAccessKey"],
+        aws_session_token=role["Credentials"]["SessionToken"],
+        region_name=region
+    )
+
+    cloudformation = session.client("cloudformation")
+    secretsmanager = session.client("secretsmanager")
 
     try:
         stacks = cloudformation.describe_stacks(StackName=thing_name)

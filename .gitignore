@@ -5,3 +5,5 @@ cdk.out/
 *.egg-info/
 *.pyc
 cdk.json
+.python-version
+dist/

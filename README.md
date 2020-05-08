@@ -4,15 +4,20 @@
 
 This project deploys the necessary [AWS IoT](https://aws.amazon.com/iot/) components for the provisioning of a Thing (Arduino, in my case) through [AWS CloudFormation](https://aws.amazon.com/cloudformation/) and the [AWS CDK](https://aws.amazon.com/cdk/) (Python). The project automatically generates a device certificate and uses [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) for storing for the device's private key. It can be reused to deploy and manage the lifecycle of multiple devices.
 
-The inspiration for this project was twofold. First, I wanted to install an Arduino microcontroller by my pool in order to track its water temperature. For this I selected an [ESP32-based microcontroller](https://www.amazon.com/dp/B0718T232Z/ref=cm_sw_em_r_mt_dp_U_HlShDb8YN7AT7) and [DS18B20-based temperature sensor](https://www.amazon.com/dp/B01MY8U394/ref=cm_sw_em_r_mt_dp_U_kmShDbWT4C6YH) (_will link here to Arduino code soon_). Second, I wanted to experiment with AWS CDK's Python support.
+The inspiration for this project was twofold:
+* First, I wanted to install an Arduino microcontroller by my pool in order to track its water temperature. For this I selected an [ESP32-based microcontroller](https://www.amazon.com/dp/B0718T232Z/ref=cm_sw_em_r_mt_dp_U_HlShDb8YN7AT7) and [DS18B20-based temperature sensor](https://www.amazon.com/dp/B01MY8U394/ref=cm_sw_em_r_mt_dp_U_kmShDbWT4C6YH). The code I wrote for the Arduino to be able to connect to wifi and publish to the AWS IoT MQQT endpoint is here: [Arduino ESP32 Temperature Logger to AWS IoT](https://github.com/edsw/ESP32-TempLogger-AWS-IoT).
+* Second, I wanted to experiment with AWS CDK's Python support.
 
 ## Prerequisites
-Install the required packages...
+Install AWS CLI, AWS CDK, and [jq](https://formulae.brew.sh/formula/jq). For example, on macOS with [brew](https://brew.sh/):
 ```
 $ brew install awscli npm jq
 $ npm install -g aws-cdk
 ```
-_Note: Only tested on macOS 10.14.5, Python 3.7.2. Tested against AWS CDK 0.36.x and 1.0._
+I have tested this on:
+* macOS Mojave (10.14.5) and Catalina (10.15.4)
+* Python 3.7.2 and 3.8.2
+* AWS CDK 0.36, 1.0, and 1.37.0
 
 ## Setup
 First, configure your AWS CLI with with the necessary permissions to deploy an AWS IoT stack in CloudFormation. I have an IAM User configured with a policy allowing it only to assume a single role that has the AWS managed policy `IAMReadOnlyAccess` attached, along with the below customer managed policy:
@@ -55,8 +60,8 @@ _(Note: replace the role_arn with your specific Role ARN.)_
 Then, clone this project and install the project prerequisites:
 ```
 $ cd /Directory/Of/Choice
-$ git clone <url>
-$ pip3 install -r requirements.txt
+$ git clone https://github.com/edsw/ThingStack.git
+$ python setup.py install
 ```
 
 Lastly, create/edit the file `cdk.json` to include the default context variables used in provisioning the stack. I have intentionally left this file out of my repository since it contains my AWS IAM Role ARN. This JSON file includes the name of your AWS IoT Thing (`thing_name`), the JSON policy that applies to your Thing (`policy_file`), the IAM Role ARN that is assumed by the code (`role_arn`), and the AWS region where you are deploying IoT resources (`region`).
@@ -119,11 +124,11 @@ $ aws iot describe-endpoint --profile thingstack --output text
 ```
 
 ## Notes
-1. To delete a stack, you must first set its certificate status to `INACTIVE` and re-run `cdk deploy` to update the stack. Then you can run `cdk destroy` against it. In `thingstack.py`:
+1. To delete a stack, you must first set its certificate status to `INACTIVE` and re-run `cdk deploy` to update the stack. Then you can run `cdk destroy [--context thing_name=]` against it. In `thingstack.py`:
 ```
 cert = aws_iot.CfnCertificate(..., status="INACTIVE")
 ```
-2. If you're using the above certificates in an Arduino project you'll need to specify the certificate details in your `.ino` file in a specific format. Append the following `awk` command to the above certificate printing commands in order to help with this formatting: `| awk '{print "\"" $0 "\\n\" \\"}'`
+2. If you're using the above certificates in an Arduino project as I did, you'll need to specify the certificate details in your source code in a specific format. Append the following `awk` command to the above certificate printing commands in order to help with this formatting: `| awk '{print "\"" $0 "\\n\" \\"}'`
 
 ## Resources
 These sites were helpful in making this project successful:
@@ -135,3 +140,4 @@ These sites were helpful in making this project successful:
 
 ## To Do
 1. Define the minimally required permission set to deploy/destroy stacks with this project.
+2. ~~Publish sister project with Arduino code~~ [DONE](https://github.com/edsw/ESP32-TempLogger-AWS-IoT)
